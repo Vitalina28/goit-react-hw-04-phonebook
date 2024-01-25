@@ -1,36 +1,33 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 import ContactForm from './ContactForm/ContactForm';
 import Filter from 'components/Filter/Filter';
 import ContactList from 'components/ContactList/ContactList';
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+export default function App() {
+  const [contacts, setContacts] = useState([
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
 
-  componentDidMount() {
+  const [filter, setFilter] = useState('');
+
+  useEffect(() => {
     const contacts = localStorage.getItem('contacts');
     const parsedContacts = JSON.parse(contacts);
 
     if (parsedContacts) {
-      this.setState({ contacts: parsedContacts });
+      setContacts(parsedContacts);
     }
-  }
+  }, []);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    }
-  }
+  useEffect(() => {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  }, [contacts]);
 
-  addUserName = ({ name, number }) => {
+  const addUserName = ({ name, number }) => {
     const user = {
       id: nanoid(),
       name,
@@ -38,23 +35,20 @@ class App extends Component {
     };
 
     console.log(user);
-    this.setState(prevState => ({
-      contacts: [user, ...prevState.contacts],
-    }));
+    setContacts(prevContacts => [user, ...prevContacts]);
   };
 
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+  const changeFilter = e => {
+    setFilter(e.currentTarget.value);
   };
 
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-    }));
+  const deleteContact = contactId => {
+    setContacts(prevContacts =>
+      prevContacts.filter(contact => contact.id !== contactId)
+    );
   };
 
-  getVisibleContact = () => {
-    const { contacts, filter } = this.state;
+  const getVisibleContact = () => {
     const normalizeFilter = filter.toLowerCase();
 
     return contacts.filter(contact =>
@@ -62,35 +56,26 @@ class App extends Component {
     );
   };
 
-  render() {
-    const { contacts, filter } = this.state;
+  const visibleContacts = getVisibleContact();
 
-    const visibleContacts = this.getVisibleContact();
+  return (
+    <div
+      style={{
+        width: '600px',
+        height: 'auto',
+        border: '1px solid black',
+        marginRight: 'auto',
+        marginLeft: 'auto',
+        padding: '20px',
+      }}
+    >
+      <h1 style={{ textAlign: 'center' }}>Phonebook</h1>
+      <ContactForm contacts={contacts} addUserName={addUserName} />
 
-    return (
-      <div
-        style={{
-          width: '600px',
-          height: 'auto',
-          border: '1px solid black',
-          marginRight: 'auto',
-          marginLeft: 'auto',
-          padding: '20px',
-        }}
-      >
-        <h1 style={{ textAlign: 'center' }}>Phonebook</h1>
-        <ContactForm contacts={contacts} newUser={this.addUserName} />
+      <h2>Contacts</h2>
+      <Filter filter={filter} onChange={changeFilter} />
 
-        <h2>Contacts</h2>
-        <Filter filter={filter} onChange={this.changeFilter} />
-
-        <ContactList
-          visibleContacts={visibleContacts}
-          onDelete={this.deleteContact}
-        />
-      </div>
-    );
-  }
+      <ContactList visibleContacts={visibleContacts} onDelete={deleteContact} />
+    </div>
+  );
 }
-
-export default App;
