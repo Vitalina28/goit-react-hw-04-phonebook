@@ -12,18 +12,12 @@ const userContacts = [
 ];
 
 export default function App() {
-  const [contacts, setContacts] = useState(userContacts);
+  const [contacts, setContacts] = useState(() => {
+    const storageContacts = localStorage.getItem('contacts');
+    return storageContacts ? JSON.parse(storageContacts) : userContacts;
+  });
 
   const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts);
-
-    if (parsedContacts) {
-      setContacts(parsedContacts);
-    }
-  }, []);
 
   useEffect(() => {
     localStorage.setItem('contacts', JSON.stringify(contacts));
